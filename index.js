@@ -35,7 +35,28 @@ async function run() {
     await client.connect();
     const userCollection = client.db("manufacturer").collection("user");
     const servicesCollection = client.db("manufacturer").collection("services");
-//user
+    const ordersCollection = client.db("manufacturer").collection("orders");
+    app.get("/services", async (req, res) => {
+      const query = {};
+      const cursor = servicesCollection.find(query);
+      const services = await cursor.toArray();
+      res.send(services);
+    });
+    //get one service
+    app.get("/service/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const service = await servicesCollection.findOne(query);
+      res.send(service);
+    });
+    //post orders
+    app.post("/orders", async (req, res) => {
+      const order = req.body;
+      const result = await ordersCollection.insertOne(order);
+      //   return res.send({ success: true, result });
+      res.send(result);
+    });
+    //user
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
