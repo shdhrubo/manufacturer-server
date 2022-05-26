@@ -9,7 +9,6 @@ const port = process.env.PORT || 5000;
 app.use(cors()); //middleware
 app.use(express.json()); //middleware for undefined
 
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vcmdl33.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -35,7 +34,8 @@ async function run() {
   try {
     await client.connect();
     const userCollection = client.db("manufacturer").collection("user");
-
+    const servicesCollection = client.db("manufacturer").collection("services");
+//user
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
