@@ -80,6 +80,11 @@ async function run() {
       const user = await userCollection.findOne(query);
       res.send(user);
     });
+    //get all users
+    app.get("/user",  async (req, res) => {
+        const users = await userCollection.find().toArray();
+        res.send(users);
+      });
     //reviews post
     app.post("/reviews", async (req, res) => {
       const reviews = req.body;
