@@ -81,10 +81,41 @@ async function run() {
       res.send(user);
     });
     //get all users
-    app.get("/user",  async (req, res) => {
-        const users = await userCollection.find().toArray();
-        res.send(users);
-      });
+    app.get("/user", async (req, res) => {
+      const users = await userCollection.find().toArray();
+      res.send(users);
+    });
+    //add a service
+    app.post("/products", async (req, res) => {
+      const product = req.body;
+      const result = await servicesCollection.insertOne(product);
+      res.send(result);
+    });
+    //delete a service
+    app.delete("/service/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await servicesCollection.deleteOne(filter);
+      res.send(result);
+    });
+    //admin check
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email: email });
+      const isAdmin = user.role === "admin";
+      res.send({ admin: isAdmin });
+    });
+    //admin making
+    app.put("/user/admin/:email", async (req, res) => {
+      const email = req.params.email;
+
+      const filter = { email: email };
+      const updateDoc = {
+        $set: { role: "admin" },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
     //reviews post
     app.post("/reviews", async (req, res) => {
       const reviews = req.body;
