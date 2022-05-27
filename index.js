@@ -72,14 +72,27 @@ async function run() {
         { expiresIn: "1d" }
       );
       res.send({ result, token });
-
+    });
+    //get one user
+    app.get("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      res.send(user);
     });
     //reviews post
     app.post("/reviews", async (req, res) => {
-        const reviews = req.body;
-        const result = await reviewsCollection.insertOne(reviews);
-        res.send(result);
-      });
+      const reviews = req.body;
+      const result = await reviewsCollection.insertOne(reviews);
+      res.send(result);
+    });
+    //   reviews get
+    app.get("/reviews", async (req, res) => {
+      const query = {};
+      const cursor = reviewsCollection.find(query);
+      const reviews = await cursor.toArray();
+      res.send(reviews);
+    });
   } finally {
   }
 }
