@@ -36,6 +36,7 @@ async function run() {
     const userCollection = client.db("manufacturer").collection("user");
     const servicesCollection = client.db("manufacturer").collection("services");
     const ordersCollection = client.db("manufacturer").collection("orders");
+    const reviewsCollection = client.db("manufacturer").collection("reviews");
     app.get("/services", async (req, res) => {
       const query = {};
       const cursor = servicesCollection.find(query);
@@ -53,7 +54,6 @@ async function run() {
     app.post("/orders", async (req, res) => {
       const order = req.body;
       const result = await ordersCollection.insertOne(order);
-      //   return res.send({ success: true, result });
       res.send(result);
     });
     //user
@@ -72,8 +72,14 @@ async function run() {
         { expiresIn: "1d" }
       );
       res.send({ result, token });
-      // res.send(result);
+
     });
+    //reviews post
+    app.post("/reviews", async (req, res) => {
+        const reviews = req.body;
+        const result = await reviewsCollection.insertOne(reviews);
+        res.send(result);
+      });
   } finally {
   }
 }
