@@ -61,7 +61,7 @@ async function run() {
       res.send(services);
     });
     //get one service
-    app.get("/service/:id", async (req, res) => {
+    app.get("/service/:id",verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const service = await servicesCollection.findOne(query);
@@ -75,7 +75,7 @@ async function run() {
       res.send(result);
     });
     //get orders by email
-    app.get("/order/:email", async (req, res) => {
+    app.get("/order/:email",verifyJWT, async (req, res) => {
       const email = req.params.email;
       const query = { user: email };
       const order = await ordersCollection.find(query).toArray();
@@ -100,14 +100,14 @@ async function run() {
       res.send({ result, token });
     });
     //get one user
-    app.get("/user/:email", async (req, res) => {
+    app.get("/user/:email",verifyJWT,verifyAdmin, async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const user = await userCollection.findOne(query);
       res.send(user);
     });
     //get all users
-    app.get("/user", async (req, res) => {
+    app.get("/user",verifyJWT,verifyAdmin, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
@@ -124,8 +124,15 @@ async function run() {
       const result = await servicesCollection.deleteOne(filter);
       res.send(result);
     });
+    //order delete api
+    app.delete("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await ordersCollection.deleteOne(filter);
+      res.send(result);
+    });
     //admin check
-    app.get("/admin/:email", async (req, res) => {
+    app.get("/admin/:email",verifyJWT,verifyAdmin, async (req, res) => {
       const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
       const isAdmin = user.role === "admin";
@@ -156,8 +163,7 @@ async function run() {
       res.send(reviews);
     });
     //payment
-
-    app.get("/orders/:id", async (req, res) => {
+    app.get("/orders/:id",verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const service = await ordersCollection.findOne(query);
