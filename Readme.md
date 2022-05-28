@@ -2,7 +2,8 @@
 
 Solver is a computer manufacturing company ruling the world!
 
-Live site link [Solver](https://github.com/programming-hero-web-course1/manufacturer-website-client-side-shdhrubo)
+Live site link [Solver](https://manufacturer-website-1234.web.app)
+
 
 # Website's features and functionality
 
