@@ -41,6 +41,7 @@ async function run() {
     const ordersCollection = client.db("manufacturer").collection("orders");
     const reviewsCollection = client.db("manufacturer").collection("reviews");
     const paymentCollection = client.db("manufacturer").collection("payment");
+    const whyUsCollection = client.db("manufacturer").collection("whyus");
 //verify admin 
  //verify admin
  const verifyAdmin = async (req, res, next) => {
@@ -57,6 +58,12 @@ async function run() {
     app.get("/services", async (req, res) => {
       const query = {};
       const cursor = servicesCollection.find(query);
+      const services = await cursor.toArray();
+      res.send(services);
+    });
+    app.get("/whyus", async (req, res) => {
+      const query = {};
+      const cursor = whyUsCollection.find(query);
       const services = await cursor.toArray();
       res.send(services);
     });
