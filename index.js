@@ -1,14 +1,17 @@
 const express = require("express");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const app = express();
 require("dotenv").config();
+
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
+
+const app = express();
 const port = process.env.PORT || 5000;
+
 app.use(cors()); //middleware
 app.use(express.json()); //middleware for undefined
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vcmdl33.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -37,6 +40,20 @@ async function run() {
     const servicesCollection = client.db("manufacturer").collection("services");
     const ordersCollection = client.db("manufacturer").collection("orders");
     const reviewsCollection = client.db("manufacturer").collection("reviews");
+    const paymentCollection = client.db("manufacturer").collection("payment");
+//verify admin 
+ //verify admin
+ const verifyAdmin = async (req, res, next) => {
+  const requester = req.decoded.email;
+  const requesterAccount = await userCollection.findOne({
+    email: requester,
+  });
+  if (requesterAccount.role === "admin") {
+    next();
+  } else {
+    res.status(403).send({ message: "forbidden" });
+  }
+};
     app.get("/services", async (req, res) => {
       const query = {};
       const cursor = servicesCollection.find(query);
@@ -50,12 +67,21 @@ async function run() {
       const service = await servicesCollection.findOne(query);
       res.send(service);
     });
+
     //post orders
     app.post("/orders", async (req, res) => {
       const order = req.body;
       const result = await ordersCollection.insertOne(order);
       res.send(result);
     });
+    //get orders by email
+    app.get("/order/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { user: email };
+      const order = await ordersCollection.find(query).toArray();
+      res.send(order);
+    });
+
     //user
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -128,6 +154,47 @@ async function run() {
       const cursor = reviewsCollection.find(query);
       const reviews = await cursor.toArray();
       res.send(reviews);
+    });
+    //payment
+
+    app.get("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const service = await ordersCollection.findOne(query);
+      res.send(service);
+    });
+    //get payment intent
+    app.post("/create-payment-intent", async (req, res) => {
+      const service = req.body;
+      const cost = service.cost;
+      console.log(cost);
+      const amount = cost * 100;
+      console.log(amount);
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+    //updating booking informaton like transaction id or paid
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+
+      const result = await paymentCollection.insertOne(payment);
+      const updatedBooking = await ordersCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      res.send(updatedBooking);
     });
   } finally {
   }
